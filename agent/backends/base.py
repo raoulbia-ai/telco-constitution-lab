@@ -59,14 +59,23 @@ class ModelBackend(ABC):
     #: the pinned model string actually sent on the wire
     model_id: str = ""
 
+    #: nominal sampling temperature (for run-config reporting); None = backend default
+    temperature: float | None = None
+
     @abstractmethod
     def chat(
         self,
         system: str,
         messages: list[dict],
         tools: list[ToolSpec] | None = None,
+        seed: int | None = None,
     ) -> AssistantTurn:
-        """Run one model turn and return the normalized result."""
+        """Run one model turn and return the normalized result.
+
+        `seed` (where the backend supports it) makes a run reproducible while
+        varying it across runs yields independent draws — so N runs are genuine
+        samples, not one deterministic outcome replayed.
+        """
 
     # -- neutral message-builder helpers (so the harness never hand-rolls roles) --
 

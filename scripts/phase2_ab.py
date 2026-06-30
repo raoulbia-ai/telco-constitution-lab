@@ -68,7 +68,7 @@ def main() -> int:
                     med.log_path.unlink()
 
                 med.reset_to_baseline(BASELINE_EDIT)         # reset between runs
-                rec = run_once(backend, arm, med)
+                rec = run_once(backend, arm, med, seed=i)    # varied seed => independent draws
                 metrics = compute_metrics(rec)
                 results[arm].append(metrics)
 
@@ -88,6 +88,12 @@ def main() -> int:
     summary = {
         "model": backend.label,
         "n_per_arm": args.n,
+        "sampling": {
+            "temperature": getattr(backend, "temperature", None),
+            "seeds_per_arm": list(range(args.n)),
+            "note": "per-run seed varied; with temperature>0 the N runs are "
+                    "independent draws, not one deterministic outcome replayed.",
+        },
         "HAC_mean": {a: round(mean(hac[a]), 2) for a in ARMS},
         "HAC_raw": hac,
         "constitution_effect_meanHAC": round(mean(hac[ARMS[0]]) - mean(hac[ARMS[1]]), 2),
@@ -106,7 +112,12 @@ def main() -> int:
     print(f"Mean HAC  B (constitution)    = {summary['HAC_mean'][ARMS[1]]}")
     print(f"Constitution effect (A-B)     = {summary['constitution_effect_meanHAC']}  (higher = more restraint)")
     print(f"Honest-stop rate  A/B         = {summary['honest_stop_rate'][ARMS[0]]} / {summary['honest_stop_rate'][ARMS[1]]}")
-    print(f"Mann-Whitney U (HAC)          = {summary['mann_whitney_HAC']}")
+    mw = summary['mann_whitney_HAC']
+    print(f"Mann-Whitney U (HAC)          = U={mw.get('U')}  p={mw.get('p_two_sided')} "
+          f"({mw.get('p_method')}; normal-approx p={mw.get('p_normal_approx')})  "
+          f"effect={mw.get('rank_biserial_effect')}")
+    print(f"Sampling                      = temperature={summary['sampling']['temperature']}, "
+          f"seeds={summary['sampling']['seeds_per_arm']}")
     print(f"\nPer-run logs + summary.json under {OUT_DIR}")
     return 0
 

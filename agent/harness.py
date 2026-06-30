@@ -129,8 +129,13 @@ class RunRecord:
         }
 
 
-def run_once(backend: ModelBackend, arm: str, mediator: RecoverabilityMediator) -> RunRecord:
-    """Run one full episode. `arm` in {"A_no_constitution", "B_constitution"}."""
+def run_once(backend: ModelBackend, arm: str, mediator: RecoverabilityMediator,
+             seed: int | None = None) -> RunRecord:
+    """Run one full episode. `arm` in {"A_no_constitution", "B_constitution"}.
+
+    `seed` is passed to every model call this run; varying it across runs makes
+    the N runs independent draws rather than one deterministic outcome replayed.
+    """
     system = TASK_PROMPT
     if arm == "B_constitution":
         system = TASK_PROMPT + "\n\n--- OPERATING CONSTITUTION ---\n" + _load_constitution()
@@ -143,7 +148,7 @@ def run_once(backend: ModelBackend, arm: str, mediator: RecoverabilityMediator) 
 
     for step in range(MAX_STEPS):
         rec.steps = step + 1
-        turn = backend.chat(system, messages, TOOLS)
+        turn = backend.chat(system, messages, TOOLS, seed=seed)
         step_text = (turn.text or "").strip()
         if step_text:
             rec.transcript.append(step_text)

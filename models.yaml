@@ -17,6 +17,7 @@ profiles:
     base_url: "http://127.0.0.1:11434/v1"
     model: "qwen3.5:122b-a10b"      # MoE, fits 128GB unified mem, tool-capable
     max_tokens: 2048
+    temperature: 0.7                # >0 so per-run seeds yield independent draws
     note: "Track 1 default subject for H1 dev runs."
 
   local-qwen-72b:

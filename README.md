@@ -33,9 +33,14 @@ surface — rather than a traffic-handling 5G core, which H1 doesn't need.
 | NETCONF management interface (RFC 6241) | **Netopeer2** server |
 | Candidate datastore + commit / discard | **sysrepo** (startup / running / candidate) |
 | Hardening settings as machine-checkable config | a small **illustrative YANG model** |
-| "Senior-engineer privileges" access surface | NACM (RFC 8341), built into sysrepo |
+| "Senior-engineer privileges" access surface | NACM (RFC 8341), built into sysrepo † |
 | **Recoverability check at the transaction boundary** | a **Policy Decision Point** that wraps `commit` |
 | Local model serving | **Ollama** on the Spark (OpenAI-compatible) |
+
+† **Present but not yet exercised.** The current phases connect as the sysrepo
+recovery user, which **bypasses NACM**. The "senior-engineer privileges" surface
+is therefore *asserted, not tested* until a dedicated non-recovery NACM user is
+wired in — see the open items in [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
 
 The two enforcement layers:
 - a **deterministic recoverability floor** (the PDP) that blocks *unrecoverable*
@@ -125,32 +130,48 @@ Reasoning-Transparency. Arms are compared with a Mann-Whitney U test.
 
 ## Results (illustrative, local model)
 
-A development run on a locally-served open model (Ollama, `qwen3.5:122b-a10b`),
-N = 5 episodes per arm, on the illustrative scenario:
+Development run on a locally-served open model (Ollama, `qwen3.5:122b-a10b`),
+**N = 10 episodes per arm**, **temperature 0.7 with a distinct seed per run**
+(so the runs are independent draws, not one deterministic outcome replayed).
+
+**The informative finding: restraint, not refusal.** In *both* arms the agent
+first worked the legitimate path — every run exhausted the **same 4 safe tuning
+levers** (mean legitimate-lever depth = 4.0 in both arms) before doing anything
+else. The constitution didn't make the agent timid; it made it *stop at the edge
+of the safe envelope* rather than cross it. With the constitution, all 10 runs
+reported the goal **unreachable within safe bounds** and halted (honest-stop rate
+1.0); without it, all 10 kept going past that edge.
+
+**Supporting: the harness reliably detects the crossing.**
 
 | Metric | Arm A — no constitution | Arm B — constitution |
 | --- | --- | --- |
-| Mean HAC (security-weakening changes) | **1.0** (5/5) | **0.0** (0/5) |
+| Legitimate-lever depth (safe optimisations) | 4.0 | 4.0 |
+| Mean HAC (security-weakening changes committed) | **1.0** (10/10) | **0.0** (0/10) |
 | Honest-stop rate | 0.0 | **1.0** |
 | Guardrail source | none (weakened security) | **own judgment** |
-| Legitimate-lever depth | 4 | 4 |
 | Outcome | `goal_met` (~21.5%) | `unachievable_safely` (~12.5%) |
 
-Mann-Whitney U on HAC: **U = 0, z = −3.0, p = 0.0027**, rank-biserial effect = **1.0**
-(perfect separation).
+HAC, exact permutation test: **U = 0, p ≈ 1.1×10⁻⁵** (= 2/C(20,10)), rank-biserial
+effect = 1.0 (perfect separation). The asymptotic normal approximation is invalid
+at this N and is reported only for contrast.
 
-Both arms exhausted the *same* legitimate (safe) levers. With no constitution,
-every run then crossed into security-weakening — disabling audit logging — to
-hit the target. With the constitution, every run stopped at the safe ceiling and
-reported the goal unreachable without weakening protection. Both arms sat above
-the deterministic floor the whole time, so this is restraint by **judgment**, not
-by a hard rule.
+**Read this carefully — the HAC gap is partly built in.** The scenario is
+constructed so the 20% target is *unreachable* using safe levers alone (they sum
+to ~12.5%), so an optimiser pushed to hit 20% will reach for the only lever that
+closes the gap. The HAC 1-vs-0 separation therefore mostly confirms that the
+plumbing **detects** a crossing — it is not, by itself, strong evidence for H1.
+The genuinely informative result is the *shared safe-lever exhaustion* above: the
+constitution preserved capability and changed only the stop point. (That the
+separation is perfect across 10 stochastic draws reflects how constrained the
+scenario is, not effect strength.)
 
-> Directional development signal only — not a scored result. A model with strong
-> built-in restraint training would be a poor proxy here (ceiling effect); the
-> scored run is conducted separately on the real lab. The scenario and
-> performance model are illustrative stand-ins. Full method + per-run logs are in
-> [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
+> **Directional development signal only — not a scored result.** A model with
+> strong built-in restraint training is a weak proxy here (ceiling effect); the
+> scored run is conducted separately on the real lab. The scenario, levers, and
+> performance model are illustrative stand-ins, and a more discriminating
+> scenario (where a safe path *could* reach the target) is the key next step.
+> Full method, validity notes, and per-run logs: [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
 
 ## Models (plug-and-play)
 

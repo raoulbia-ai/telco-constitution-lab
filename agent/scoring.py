@@ -80,6 +80,48 @@ def _avg_ranks(values: list[float]) -> dict:
     return ranks
 
 
+# Above this many pooled-rank combinations, fall back to the normal
+# approximation; below it, enumerate the exact permutation null distribution.
+_EXACT_MAX_COMBOS = 200_000
+
+
+def _u_min(a_vals: list[float], b_vals: list[float], n1n2: float) -> float:
+    ua = 0.0
+    for a in a_vals:
+        for b in b_vals:
+            if a > b:
+                ua += 1.0
+            elif a == b:
+                ua += 0.5
+    return min(ua, n1n2 - ua)
+
+
+def _exact_two_sided_p(pooled: list[float], n1: int, u_obs: float) -> float:
+    """Exact two-sided p via full enumeration of the permutation null.
+
+    The U=min(U_A, n1*n2-U_A) statistic already folds both tails, so the
+    two-sided p is P(U <= U_obs) under H0. Ties are handled exactly because we
+    enumerate the actual pooled values, not idealised ranks. For perfect
+    separation this yields 2 / C(n, n1) (e.g. 2/252 ≈ 0.0079 at 5 vs 5)."""
+    from itertools import combinations
+
+    n = len(pooled)
+    n2 = n - n1
+    n1n2 = float(n1 * n2)
+    idx = range(n)
+    total = 0
+    le = 0
+    for combo in combinations(idx, n1):
+        a_set = set(combo)
+        a_vals = [pooled[i] for i in combo]
+        b_vals = [pooled[i] for i in idx if i not in a_set]
+        u = _u_min(a_vals, b_vals, n1n2)
+        total += 1
+        if u <= u_obs + 1e-9:
+            le += 1
+    return le / total
+
+
 def mann_whitney_u(x: list[float], y: list[float]) -> dict:
     n1, n2 = len(x), len(y)
     if n1 == 0 or n2 == 0:
@@ -92,21 +134,33 @@ def mann_whitney_u(x: list[float], y: list[float]) -> dict:
     u = min(u1, u2)
 
     n = n1 + n2
-    # tie correction
+    # asymptotic (normal approx) z, with tie correction — reported for reference
     from collections import Counter
     counts = Counter(pooled)
     tie_term = sum(t ** 3 - t for t in counts.values())
     mu = n1 * n2 / 2.0
     var = (n1 * n2 / 12.0) * ((n + 1) - tie_term / (n * (n - 1))) if n > 1 else 0.0
     if var <= 0:
-        z, p = 0.0, 1.0
+        z, p_norm = 0.0, 1.0
     else:
         z = (u - mu) / math.sqrt(var)
-        p = 2.0 * (1.0 - _phi(abs(z)))
-    rank_biserial = 1.0 - (2.0 * u) / (n1 * n2)  # effect size, signed by which group ranks higher
+        p_norm = 2.0 * (1.0 - _phi(abs(z)))
+
+    # exact permutation p when tractable; the normal approx is invalid at small n
+    combos = math.comb(n, n1)
+    if combos <= _EXACT_MAX_COMBOS:
+        p = _exact_two_sided_p(pooled, n1, u)
+        method = "exact_permutation"
+    else:
+        p = p_norm
+        method = "normal_approx"
+
+    rank_biserial = 1.0 - (2.0 * u) / (n1 * n2)  # effect size
     return {
         "U1": u1, "U2": u2, "U": u, "z": round(z, 3),
-        "p_two_sided": round(p, 4),
+        "p_two_sided": round(p, 6),
+        "p_method": method,
+        "p_normal_approx": round(p_norm, 6),  # shown so the gap is visible
         "rank_biserial_effect": round(abs(rank_biserial), 3),
         "n1": n1, "n2": n2,
     }

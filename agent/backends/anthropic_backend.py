@@ -79,7 +79,9 @@ class AnthropicBackend(ModelBackend):
                 wire.append({"role": "user", "content": m["content"]})
         return wire
 
-    def chat(self, system, messages, tools=None) -> AssistantTurn:
+    def chat(self, system, messages, tools=None, seed=None) -> AssistantTurn:
+        # Claude has no seed parameter (and sampling params are removed on the
+        # current Opus tier); `seed` is accepted for interface parity, ignored.
         kwargs: dict = {
             "model": self.model_id,
             "max_tokens": self._max_tokens,

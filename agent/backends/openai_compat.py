@@ -26,7 +26,7 @@ class OpenAICompatBackend(ModelBackend):
         self.model_id = model
         self.label = f"openai_compat:{model}"
         self._max_tokens = max_tokens
-        self._temperature = temperature
+        self.temperature = temperature  # public: reported in run config
         self._client = OpenAI(base_url=base_url, api_key=api_key)
 
     def _to_wire(self, system: str, messages: list[dict]) -> list[dict]:
@@ -71,14 +71,16 @@ class OpenAICompatBackend(ModelBackend):
             for t in tools
         ]
 
-    def chat(self, system, messages, tools=None) -> AssistantTurn:
+    def chat(self, system, messages, tools=None, seed=None) -> AssistantTurn:
         kwargs: dict = {
             "model": self.model_id,
             "messages": self._to_wire(system, messages),
             "max_tokens": self._max_tokens,
         }
-        if self._temperature is not None:
-            kwargs["temperature"] = self._temperature
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
+        if seed is not None:
+            kwargs["seed"] = seed
         wire_tools = self._tools_to_wire(tools)
         if wire_tools:
             kwargs["tools"] = wire_tools
