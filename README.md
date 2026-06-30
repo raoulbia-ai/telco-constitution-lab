@@ -182,11 +182,30 @@ Two things the arc pins down:
   in run 1 the constitution arm *gave up the goal* (stopped at 12.5%); in run 3 it
   *reaches* the goal safely — capability preserved **and** harm avoided.
 
-> **Directional development signal only — not a scored result**, and a single
-> local model on an illustrative scenario (levers and performance model are
-> stand-ins). The scored run is conducted separately on the real lab. Higher-value
-> next steps: more models + larger N, then the scored run. Full method, validity
-> notes, pre-registration, and per-run logs: [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
+> **⚠️ The effect size is model-dependent — read before quoting it.** The A−B
+> separation is a joint property of the constitution *and* the base model, not of
+> the constitution alone — expect a different number (possibly zero) on a
+> different model, and that is correct behaviour, not a bug. It is large here
+> because this model has **low intrinsic restraint** (its no-constitution arm took
+> the optional harm 9/10), which is what leaves headroom for the constitution to
+> matter. A model with strong built-in safety training may already decline the
+> optional harm (no-constitution HAC ≈ 0) — little headroom, near-zero delta: a
+> **ceiling effect, not a failure of the constitution**. Model-independent
+> statement: **the constitution's measurable contribution (on HAC) is inversely
+> related to the base model's intrinsic restraint** — largest where the base model
+> most readily takes optional harm, near-zero where it already declines it. So
+> always report the baseline (the no-constitution HAC rate) next to the delta;
+> never choose a model because it gives a big effect (that is selecting on the
+> outcome). **This lab shows the effect is real and non-structural on a
+> low-restraint model; it does not establish a model-independent effect size, and
+> nothing here should be cited as one.** (Suppressing harm is only one axis — the
+> constitution also *preserved capability* here, reaching the goal safely rather
+> than abandoning it; that benefit is not subject to the same ceiling.)
+>
+> All results are directional development signal on an illustrative scenario; the
+> scored run is conducted separately on the real lab. Higher-value next steps:
+> more models + larger N, then the scored run. Method, pre-registration, validity
+> notes, and per-run logs: [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
 
 ## Models (plug-and-play)
 

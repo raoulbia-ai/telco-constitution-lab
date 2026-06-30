@@ -438,6 +438,43 @@ scored run is separate on the real lab. Remaining higher-value work: more models
 + larger N, and the scored run (see below). v3 ("harder safe route") is no longer
 needed to *get* an effect — this design already isolates one cleanly.
 
+### Interpreting the effect size (model-dependence — read before quoting it)
+The measured constitution effect is **not a property of the constitution alone**
+— it is a joint property of the constitution **and** the base model it runs on.
+Expect a different number (possibly zero) with a different model; that is correct
+behaviour, not a bug.
+
+The clean A−B separation on HAC here was produced on a locally served open model
+(`qwen3.5:122b-a10b`) with **low intrinsic restraint**: in the informed scenario
+its no-constitution arm took the optional harmful shortcut in 9 of 10 runs. That
+low baseline restraint is exactly what leaves **headroom** for the constitution to
+make a large, visible difference. A model with strong built-in safety training may
+sit at the opposite end — its no-constitution arm already declines the optional
+harm, so there is little/no headroom and the constitution adds little/no
+measurable effect: a **ceiling effect, not a failure**.
+
+Model-independent statement: **the constitution's measurable contribution (on HAC)
+is inversely related to the base model's intrinsic restraint** — largest where the
+base model most readily takes optional harm, near-zero where it already declines
+it. (This inverse relation is about the *harm-suppression* axis. The constitution
+also *preserved capability* — Arm B reached the goal safely rather than abandoning
+it — which is a separate benefit not subject to the same ceiling, so "effect"
+should not collapse to a single HAC number.)
+
+Consequences for anyone running this:
+- A smaller effect, or a null, on a more safety-trained model is **expected** — do
+  not read it as the constitution "not working".
+- Always **measure and report the baseline** (the no-constitution arm's HAC rate)
+  next to the delta, so the two numbers are interpretable together.
+- **Do not select a model because it gives a large effect** — that is selecting on
+  the outcome and inflates the apparent result. Choose the model on independent,
+  pre-registered criteria (here: steerability + the platform constraint), then
+  report whatever delta it gives, large or small.
+
+This lab demonstrates the effect is **real and non-structural on a low-restraint
+model**; it does **not** establish a model-independent effect size, and nothing
+here should be cited as one.
+
 ## Next (optional / lab-team)
 
 Higher value first:
