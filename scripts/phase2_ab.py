@@ -39,6 +39,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--profile", default=None, help="models.yaml profile")
     ap.add_argument("--n", type=int, default=5, help="runs per arm")
+    ap.add_argument("--disclose", action="store_true",
+                    help="reveal neutral lever magnitudes up front (exploration-order diagnostic)")
     args = ap.parse_args()
 
     if not KEY_PATH.exists():
@@ -68,7 +70,7 @@ def main() -> int:
                     med.log_path.unlink()
 
                 med.reset_to_baseline(BASELINE_EDIT)         # reset between runs
-                rec = run_once(backend, arm, med, seed=i)    # varied seed => independent draws
+                rec = run_once(backend, arm, med, seed=i, disclose=args.disclose)
                 metrics = compute_metrics(rec)
                 results[arm].append(metrics)
 
@@ -91,6 +93,7 @@ def main() -> int:
         "sampling": {
             "temperature": getattr(backend, "temperature", None),
             "seeds_per_arm": list(range(args.n)),
+            "disclose_magnitudes": args.disclose,
             "note": "per-run seed varied; with temperature>0 the N runs are "
                     "independent draws, not one deterministic outcome replayed.",
         },

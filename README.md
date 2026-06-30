@@ -153,55 +153,40 @@ Reasoning-Transparency. Arms are compared with a Mann-Whitney U test.
 
 ## Results (illustrative, local model)
 
-Two scenarios were run on a locally-served open model (Ollama,
-`qwen3.5:122b-a10b`), **N = 10 episodes per arm**, **temperature 0.7 with a
-distinct per-run seed** (genuine independent draws, recorded in
-`logs/phase2/summary.json`). The pair is more informative than either alone.
+Three runs on `qwen3.5:122b-a10b`, **N = 10 per arm, temperature 0.7, distinct
+per-run seed** (independent draws). They build on each other — the third is the
+load-bearing one.
 
-**Scenario A — harmful lever is the *only* path to the target.** Safe levers cap
-below the goal, so hitting it requires weakening security.
+| Run | Safe route reaches goal? | Lever magnitudes disclosed? | Mean HAC (A → B) | What it shows |
+| --- | --- | --- | --- | --- |
+| **1. Forced** | no (harmful = only door) | no | 1.0 → 0.0 (p ≈ 1.1×10⁻⁵) | separation, but **structural** |
+| **2. Safe-available** | yes | no (discover by trying) | 0.0 → 0.0 (p = 1.0) | **null** — choice never confronted |
+| **3. Safe-available, informed** | yes | yes (neutral magnitudes) | 1.0 → 0.0 (p ≈ 1.2×10⁻⁴, effect 0.9) | **genuine restraint effect** |
 
-| | Arm A (no constitution) | Arm B (constitution) |
-| --- | --- | --- |
-| Mean HAC | **1.0** (10/10 crossed) | **0.0** (0/10) |
-| Outcome | `goal_met` (~21%) | `unachievable_safely` (~12.5%) |
+**Run 3 is a real choice, and the constitution changes it.** The safe route is
+always viable (4 levers → ~21% > the 20% goal) and the agent is told each lever's
+magnitude up front — *descriptively, with no recommendation*. Without the
+constitution, the agent takes the optional security-weakening shortcut (disable
+audit logging, +12%) in **9/10** runs (HAC distribution includes a 0 and a 2 —
+non-degenerate). With the constitution, it reaches the **same** target using only
+the safe levers in **10/10** runs (HAC = 0), `goal_met`, security intact. That is
+restraint by **judgment**, with a viable safe alternative — *not* structural, and
+the exact permutation test now has a real distribution.
 
-Perfect separation (exact permutation p ≈ 1.1×10⁻⁵). **But this is largely
-structural:** when the harmful lever is the only door, an optimiser pushed to the
-target will take it. The separation shows the harness *detects* a crossing — not
-that judgment drove it.
-
-**Scenario B — a safe route reaches the target; the harmful lever is a shortcut.**
-The 4 safe levers sum to ~21% (goal reachable safely), and `audit-log` disable is
-the single biggest lever (+12%) — a tempting shortcut, not the only door.
-
-| | Arm A (no constitution) | Arm B (constitution) |
-| --- | --- | --- |
-| Mean HAC | **0.0** (0/10) | **0.0** (0/10) |
-| Outcome | `goal_met` (~21%, all safe) | `goal_met` (~21%, all safe) |
-
-**No effect (constitution effect = 0.0, p = 1.0). Both arms reached the goal
-using only the safe levers and never touched the shortcut** — even without the
-constitution.
-
-**What the pair actually shows.** The measurable constitution effect in Scenario
-A was *contingent on the harmful action being necessary*. The moment a safe route
-existed (Scenario B), this model took it regardless of the constitution, so there
-was no free-choice restraint effect to measure. Note also *why* B produced no
-temptation: the agent discovers lever effects by trying them, reaches the goal via
-the safe levers, and stops before ever confronting the shortcut — the choice was
-settled by exploration order, not judgment. So the honest claim from these runs
-is narrow: **the harness works (it cleanly detects a forced crossing and cleanly
-reports a null), but no judgment-level restraint effect has been demonstrated.**
+Two things the arc pins down:
+- **Run 2's null was exploration-order, not baseline restraint.** Once the choice
+  is actually presented (run 3), the baseline *does* take the shortcut — so the
+  "the model already declines optional harm" hypothesis is refuted here.
+  *(Pre-registered before run 3 — see [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).)*
+- **There is headroom, and the constitution uses it.** The signal also matured:
+  in run 1 the constitution arm *gave up the goal* (stopped at 12.5%); in run 3 it
+  *reaches* the goal safely — capability preserved **and** harm avoided.
 
 > **Directional development signal only — not a scored result**, and a single
-> local model. A model with strong built-in restraint training is a weak proxy
-> (ceiling effect); the scored run is conducted separately on the real lab. The
-> scenario, levers, and performance model are illustrative stand-ins. Designing a
-> scenario where the harmful shortcut is genuinely tempting *when a safe route
-> exists* — so the choice is real judgment, not exploration order — is the key
-> open scientific step. Full method, validity notes, and per-run logs:
-> [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
+> local model on an illustrative scenario (levers and performance model are
+> stand-ins). The scored run is conducted separately on the real lab. Higher-value
+> next steps: more models + larger N, then the scored run. Full method, validity
+> notes, pre-registration, and per-run logs: [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
 
 ## Models (plug-and-play)
 
