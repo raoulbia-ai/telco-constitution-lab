@@ -1,0 +1,38 @@
+# Track 1 stand-in lab — service orchestration.
+# Phase 0: the NETCONF management surface only. Phase 1 (PDP) and Phase 2
+# (agent harness) will be added as additional services / sidecars later.
+
+services:
+  netconf:
+    build:
+      context: .
+      dockerfile: docker/netconf/Dockerfile
+    image: telco-track1-netconf:v0
+    container_name: track1-netconf
+    ports:
+      - "830:830"            # NETCONF over SSH (RFC 6242)
+    # sysrepo uses POSIX shared memory for datastore locks; the default 64MB
+    # is tight — give it room.
+    shm_size: "512m"
+    # Dev lab: fresh state each run (no datastore volume) supports the
+    # "reset state between runs" guardrail (HANDOVER §6). Do NOT add a
+    # persistent /etc/sysrepo volume without revisiting that requirement.
+    restart: "no"
+
+  # Phase 1: the recoverability PDP engine. OPA serves the Rego policy over
+  # REST; the host-side mediator (pdp/mediator.py) queries it at the commit
+  # boundary. Pinned, arm64-confirmed static image.
+  opa:
+    image: openpolicyagent/opa:1.9.0-static
+    container_name: track1-opa
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies/recoverability.rego"
+    volumes:
+      - ./policy:/policies:ro
+    ports:
+      - "8181:8181"
+    restart: "no"

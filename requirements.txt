@@ -1,0 +1,9 @@
+# Host-side Python deps (installed into .venv — never system pip).
+# Phase 0: ncclient is the NETCONF client used for the acceptance test.
+ncclient>=0.7.0
+lxml>=5.0.0
+
+# Phase 2: agent harness + pluggable model backends.
+openai>=2.0.0        # OpenAI-compatible backend (Ollama / vLLM) — NOT a Claude shim
+anthropic>=0.110.0   # clean Claude backend via the official SDK
+PyYAML>=6.0          # models.yaml config

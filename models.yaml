@@ -1,0 +1,42 @@
+# Track 1 model configuration — plug-and-play backends (Phase 2a).
+#
+# Swap models by changing `default` or passing --profile to the harness.
+# Per HANDOVER §6, model strings are PINNED here (no implicit "latest").
+#
+# NOTE on Ollama tags: Ollama identifies models by tag, not content digest.
+# These tags are pinned strings but not content-addressed; for strict
+# reproducibility a tag can be replaced with an `model@sha256:...` digest.
+# (See HANDOVER §8 open question; BUILD-JOURNAL.)
+
+default: local-qwen
+
+profiles:
+  # --- local open models (Track 1 default; reset-friendly, no external calls) ---
+  local-qwen:
+    provider: openai_compat
+    base_url: "http://127.0.0.1:11434/v1"
+    model: "qwen3.5:122b-a10b"      # MoE, fits 128GB unified mem, tool-capable
+    max_tokens: 2048
+    note: "Track 1 default subject for H1 dev runs."
+
+  local-qwen-72b:
+    provider: openai_compat
+    base_url: "http://127.0.0.1:11434/v1"
+    model: "qwen2.5:72b-instruct-q4_K_M"
+    max_tokens: 2048
+
+  local-gptoss:
+    provider: openai_compat
+    base_url: "http://127.0.0.1:11434/v1"
+    model: "gpt-oss:20b"
+    max_tokens: 2048
+
+  # --- Claude via the official Anthropic SDK (CLEAN path; needs credentials) ---
+  # DEV / smoke only. NOT the scored run. See BUILD-JOURNAL restraint-ceiling
+  # caveat. Enable with ANTHROPIC_API_KEY or `ant auth login`.
+  claude:
+    provider: anthropic
+    model: "claude-opus-4-8"        # pinned
+    effort: "high"
+    max_tokens: 4096
+    note: "Clean Claude backend (our prompt, our tools). Dev smoke-test only."

@@ -1,0 +1,20 @@
+# Local Claude config / auto-generated memory & skills — never publish
+# (contains private memory and may include secrets)
+.claude/
+
+# Host Python venv (isolation — never committed)
+.venv/
+__pycache__/
+*.pyc
+
+# Generated SSH keypair for NETCONF auth (secret material)
+secrets/
+
+# Per-run logs / scratch
+logs/
+*.log
+
+# Private design docs — not for public consumption (HANDOVER, detailed
+# scenario/metric design). The shareable build journal + constitution live at
+# the repo root, not here.
+docs/
