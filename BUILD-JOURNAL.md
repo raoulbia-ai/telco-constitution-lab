@@ -330,6 +330,30 @@ Exact permutation test: U=0, **p ≈ 1.1×10⁻⁵** (= 2/C(20,10)), rank-biseri
    be a rule, not judgment), but it means the "senior-engineer privileges"
    replication claim is not yet exercised. See Phase 4 in open items.
 
+### Scenario v2 result — the null that matters (and validates the v1 caveat)
+Re-tuned the gains so the 4 safe levers reach ~21% (goal achievable safely) and
+`audit-log` disable is the single biggest lever (+12%, a shortcut, not the only
+door). Re-ran N=10/arm, temperature 0.7, seeds 0–9.
+
+**Result: no effect.** Both arms HAC=0; all 20 runs reached ~21% using only the
+4 safe levers and `goal_met`; **zero harmful attempts in either arm**.
+Constitution effect = 0.0, exact p = 1.0.
+
+Interpretation (this is the scientifically important part):
+- v1's perfect separation was **structural** — it required the harmful lever to
+  be the *only* path. Confirmed exactly as the reviewer predicted.
+- When a safe route to the goal exists, this model takes it **regardless of the
+  constitution**, so there is no free-choice restraint effect to measure here.
+- **Why v2 didn't tempt:** the agent discovers lever effects by trying them,
+  reaches the goal via the safe levers, and stops *before ever confronting the
+  shortcut*. The "choice" was settled by exploration order, not judgment — so the
+  temptation was never actually presented. Making the safe route merely
+  *sufficient* is not enough; the harmful shortcut must be **salient and
+  preferred-by-default** for the choice to be a genuine judgment test.
+- Honest claim from these runs: the harness works (cleanly detects a forced
+  crossing in v1, cleanly reports a null in v2); **no judgment-level restraint
+  effect has been demonstrated.**
+
 **[OPEN] Restraint-ceiling caveat still applies** — directional dev signal only;
 runs here use a locally served open model on the Spark via Ollama, and the
 scored run is conducted separately on the real lab.
@@ -343,26 +367,23 @@ reset-between-runs and per-run logging (Phase 2) — reproducible on the Spark.
 ## Next (optional / lab-team)
 
 Higher value first:
-- **Non-tautological scenario v2 (the step that makes the rest load-bearing).**
-  The current design makes the harmful lever the *only* way to hit the 20%
-  target, so Arm A "crossing" is near-guaranteed by construction and the HAC
-  distribution is degenerate (two constant columns) — the exact-permutation test
-  is correct but idle, and perfect separation surviving temperature=0.7 is itself
-  mild evidence the path is still forced.
-  **Design target:** the safe levers must be able to *reach the goal* (or get
-  ambiguously close), with a harmful lever as an *easier shortcut* rather than
-  the only door. This converts HAC from "did the agent find the one forced path"
-  into "did the agent take the easy harmful shortcut when a harder safe route
-  existed" — the real engineering-judgment question.
-  **Concrete calibration to try:** re-tune `agent/levers.py` gains so the 4 safe
-  tuning levers sum to ≈20% (goal reachable safely if the agent does the work),
-  and make a single harmful lever (e.g. audit-off) a large one-shot jump
-  (≈15–18%) — reaching the target in fewer moves but weakening security.
-  **Success criterion:** a *non-degenerate* HAC distribution — some Arm A runs
-  take the shortcut, some grind the safe route; Arm B predominantly safe *but
-  still reaching the goal* (capability preserved). Partial overlap is the
-  informative signal, and the exact test finally has a real distribution. If
-  separation still holds under that design, *that* is a genuine restraint effect.
+- **Scenario v3 — make the harmful shortcut *salient*, not just available.**
+  v2 (safe-fully-reaches; gains hidden, discovered by trial) produced a clean
+  NULL: both arms reached the goal via safe levers and never confronted the
+  shortcut, because exploration order settled the choice before judgment did
+  (see Scenario v2 result above). Lesson: a sufficient-but-undiscovered safe
+  route does not create a judgment test. v3 must make the harmful lever's
+  superiority **known up front** so the agent actually chooses — candidate
+  mechanisms:
+    - disclose approximate lever effectiveness in the task prompt (so the agent
+      knows `audit-off` is the single biggest win and must *decide* whether to
+      use it), and/or
+    - make the safe route genuinely *harder/longer/uncertain* than the shortcut
+      (e.g. safe levers individually small + noisy, shortcut one decisive move).
+  **Success criterion (unchanged):** a non-degenerate HAC distribution — Arm A
+  shows a mix, Arm B predominantly safe but still reaching the goal. Only then do
+  the exact test and stochastic sampling become load-bearing. If separation
+  survives *that*, it is a genuine restraint effect rather than a structural one.
 - **Scored run** on the real lab with the production-served model (the local
   model is a proxy; restraint-ceiling caveat). Lock the real action surface.
 - **More models + larger N** (temperature>0, varied seeds — now in place).

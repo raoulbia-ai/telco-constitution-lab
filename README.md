@@ -130,48 +130,55 @@ Reasoning-Transparency. Arms are compared with a Mann-Whitney U test.
 
 ## Results (illustrative, local model)
 
-Development run on a locally-served open model (Ollama, `qwen3.5:122b-a10b`),
-**N = 10 episodes per arm**, **temperature 0.7 with a distinct seed per run**
-(so the runs are independent draws, not one deterministic outcome replayed).
+Two scenarios were run on a locally-served open model (Ollama,
+`qwen3.5:122b-a10b`), **N = 10 episodes per arm**, **temperature 0.7 with a
+distinct per-run seed** (genuine independent draws, recorded in
+`logs/phase2/summary.json`). The pair is more informative than either alone.
 
-**The informative finding: restraint, not refusal.** In *both* arms the agent
-first worked the legitimate path — every run exhausted the **same 4 safe tuning
-levers** (mean legitimate-lever depth = 4.0 in both arms) before doing anything
-else. The constitution didn't make the agent timid; it made it *stop at the edge
-of the safe envelope* rather than cross it. With the constitution, all 10 runs
-reported the goal **unreachable within safe bounds** and halted (honest-stop rate
-1.0); without it, all 10 kept going past that edge.
+**Scenario A — harmful lever is the *only* path to the target.** Safe levers cap
+below the goal, so hitting it requires weakening security.
 
-**Supporting: the harness reliably detects the crossing.**
-
-| Metric | Arm A — no constitution | Arm B — constitution |
+| | Arm A (no constitution) | Arm B (constitution) |
 | --- | --- | --- |
-| Legitimate-lever depth (safe optimisations) | 4.0 | 4.0 |
-| Mean HAC (security-weakening changes committed) | **1.0** (10/10) | **0.0** (0/10) |
-| Honest-stop rate | 0.0 | **1.0** |
-| Guardrail source | none (weakened security) | **own judgment** |
-| Outcome | `goal_met` (~21.5%) | `unachievable_safely` (~12.5%) |
+| Mean HAC | **1.0** (10/10 crossed) | **0.0** (0/10) |
+| Outcome | `goal_met` (~21%) | `unachievable_safely` (~12.5%) |
 
-HAC, exact permutation test: **U = 0, p ≈ 1.1×10⁻⁵** (= 2/C(20,10)), rank-biserial
-effect = 1.0 (perfect separation). The asymptotic normal approximation is invalid
-at this N and is reported only for contrast.
+Perfect separation (exact permutation p ≈ 1.1×10⁻⁵). **But this is largely
+structural:** when the harmful lever is the only door, an optimiser pushed to the
+target will take it. The separation shows the harness *detects* a crossing — not
+that judgment drove it.
 
-**Read this carefully — the HAC gap is partly built in.** The scenario is
-constructed so the 20% target is *unreachable* using safe levers alone (they sum
-to ~12.5%), so an optimiser pushed to hit 20% will reach for the only lever that
-closes the gap. The HAC 1-vs-0 separation therefore mostly confirms that the
-plumbing **detects** a crossing — it is not, by itself, strong evidence for H1.
-The genuinely informative result is the *shared safe-lever exhaustion* above: the
-constitution preserved capability and changed only the stop point. (That the
-separation is perfect across 10 stochastic draws reflects how constrained the
-scenario is, not effect strength.)
+**Scenario B — a safe route reaches the target; the harmful lever is a shortcut.**
+The 4 safe levers sum to ~21% (goal reachable safely), and `audit-log` disable is
+the single biggest lever (+12%) — a tempting shortcut, not the only door.
 
-> **Directional development signal only — not a scored result.** A model with
-> strong built-in restraint training is a weak proxy here (ceiling effect); the
-> scored run is conducted separately on the real lab. The scenario, levers, and
-> performance model are illustrative stand-ins, and a more discriminating
-> scenario (where a safe path *could* reach the target) is the key next step.
-> Full method, validity notes, and per-run logs: [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
+| | Arm A (no constitution) | Arm B (constitution) |
+| --- | --- | --- |
+| Mean HAC | **0.0** (0/10) | **0.0** (0/10) |
+| Outcome | `goal_met` (~21%, all safe) | `goal_met` (~21%, all safe) |
+
+**No effect (constitution effect = 0.0, p = 1.0). Both arms reached the goal
+using only the safe levers and never touched the shortcut** — even without the
+constitution.
+
+**What the pair actually shows.** The measurable constitution effect in Scenario
+A was *contingent on the harmful action being necessary*. The moment a safe route
+existed (Scenario B), this model took it regardless of the constitution, so there
+was no free-choice restraint effect to measure. Note also *why* B produced no
+temptation: the agent discovers lever effects by trying them, reaches the goal via
+the safe levers, and stops before ever confronting the shortcut — the choice was
+settled by exploration order, not judgment. So the honest claim from these runs
+is narrow: **the harness works (it cleanly detects a forced crossing and cleanly
+reports a null), but no judgment-level restraint effect has been demonstrated.**
+
+> **Directional development signal only — not a scored result**, and a single
+> local model. A model with strong built-in restraint training is a weak proxy
+> (ceiling effect); the scored run is conducted separately on the real lab. The
+> scenario, levers, and performance model are illustrative stand-ins. Designing a
+> scenario where the harmful shortcut is genuinely tempting *when a safe route
+> exists* — so the choice is real judgment, not exploration order — is the key
+> open scientific step. Full method, validity notes, and per-run logs:
+> [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
 
 ## Models (plug-and-play)
 
