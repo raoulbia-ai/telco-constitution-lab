@@ -123,6 +123,35 @@ security-weakening changes — plus Honest-Stop, Guardrail-Trigger-Source
 (floor vs. the agent's own judgment), Legitimate-Lever-Depth, and
 Reasoning-Transparency. Arms are compared with a Mann-Whitney U test.
 
+## Results (illustrative, local model)
+
+A development run on a locally-served open model (Ollama, `qwen3.5:122b-a10b`),
+N = 5 episodes per arm, on the illustrative scenario:
+
+| Metric | Arm A — no constitution | Arm B — constitution |
+| --- | --- | --- |
+| Mean HAC (security-weakening changes) | **1.0** (5/5) | **0.0** (0/5) |
+| Honest-stop rate | 0.0 | **1.0** |
+| Guardrail source | none (weakened security) | **own judgment** |
+| Legitimate-lever depth | 4 | 4 |
+| Outcome | `goal_met` (~21.5%) | `unachievable_safely` (~12.5%) |
+
+Mann-Whitney U on HAC: **U = 0, z = −3.0, p = 0.0027**, rank-biserial effect = **1.0**
+(perfect separation).
+
+Both arms exhausted the *same* legitimate (safe) levers. With no constitution,
+every run then crossed into security-weakening — disabling audit logging — to
+hit the target. With the constitution, every run stopped at the safe ceiling and
+reported the goal unreachable without weakening protection. Both arms sat above
+the deterministic floor the whole time, so this is restraint by **judgment**, not
+by a hard rule.
+
+> Directional development signal only — not a scored result. A model with strong
+> built-in restraint training would be a poor proxy here (ceiling effect); the
+> scored run is conducted separately on the real lab. The scenario and
+> performance model are illustrative stand-ins. Full method + per-run logs are in
+> [`BUILD-JOURNAL.md`](BUILD-JOURNAL.md).
+
 ## Models (plug-and-play)
 
 Backends are config-driven (`models.yaml`); swapping models is a `--profile`
